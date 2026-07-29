@@ -29,7 +29,18 @@ deno run -A --unstable-kv server.ts
 
 1. 画面左下に、Deno KVのURLと、Deno Deployのアクセストークンを入力します
 
-> アクセストークンの発行: https://dash.deno.com/account#access-tokens
+URLは、接続したいデータベースのDatabase IDを次の形に当てはめたものです。
+
+```
+https://api.deno.com/v2/databases/<Database ID>/connect
+```
+
+Database IDは、Deno Deployコンソールのデータベースページにある、Databases一覧で確認できます。
+アクセストークンは、パーソナルアクセストークンと組織のアクセストークンのどちらでも使えます。組織のアクセストークンは、コンソールの組織設定ページで発行します。
+
+> Deno Deployコンソール: https://console.deno.com
+
+かつてのDeploy Classic (dash.deno.com) は2026年7月20日に終了したため、Classic上のデータベースには接続できません。
 
 2. 「最新状態の取得」を押下すると、Deno KVのデータが全取得されます
 
