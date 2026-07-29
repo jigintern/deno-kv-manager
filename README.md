@@ -16,7 +16,7 @@ localhost:8080を使用するため、通常のDenoプロジェクトとポー�
 ### 2. リポジトリのクローン
 以下のコマンドを実行して下さい。
 ```sh
-git clone git@github.com:Futaba-Kosuke/deno-kv-manager.git
+git clone git@github.com:jigintern/deno-kv-manager.git
 cd deno-kv-manager
 ```
 
