@@ -142,8 +142,16 @@ const getAll = async () => {
   const url = getUrl();
   const token = getToken();
 
-  const response = await fetchServer("PUT", "/get_all", { url, token });
-  const rowsData = await response.json();
+  hideError();
+
+  let rowsData;
+  try {
+    const response = await fetchServer("PUT", "/get_all", { url, token });
+    rowsData = await response.json();
+  } catch (error) {
+    showError(`データの取得に失敗しました: ${error.message}`);
+    return;
+  }
 
   $("#kv-rows").empty();
   rows.length = 0;
@@ -175,9 +183,16 @@ const updateRows = async () => {
   const url = getUrl();
   const token = getToken();
 
+  hideError();
+
   const rowsData = rows.filter(row => row.isChecked()).map(row => row.getData());
 
-  await fetchServer("PUT", "/rows", { url, token, rows: rowsData });
+  try {
+    await fetchServer("PUT", "/rows", { url, token, rows: rowsData });
+  } catch (error) {
+    showError(`データの更新に失敗しました: ${error.message}`);
+    return;
+  }
 
   // 1秒待つ
   await setTimeout(async () => {
@@ -190,9 +205,16 @@ const deleteRows = async () => {
   const url = getUrl();
   const token = getToken();
 
+  hideError();
+
   const target_keys = rows.filter(row => row.isChecked()).map(row => row.getData().key);
 
-  await fetchServer('DELETE', '/rows', { url, token, target_keys });
+  try {
+    await fetchServer('DELETE', '/rows', { url, token, target_keys });
+  } catch (error) {
+    showError(`データの削除に失敗しました: ${error.message}`);
+    return;
+  }
 
   // 1秒待つ
   await setTimeout(async () => {
@@ -209,7 +231,16 @@ const allDestroy = async () => {
     return
   }
 
-  const response = await fetchServer("DELETE", "/all_destroy", { url, token });
+  hideError();
+
+  let response;
+  try {
+    response = await fetchServer("DELETE", "/all_destroy", { url, token });
+  } catch (error) {
+    // 削除できていないので表示は消さずに残す
+    showError(`全削除に失敗しました: ${error.message}`);
+    return;
+  }
 
   // 要素内を空に
   $("#kv-rows").empty();
@@ -244,13 +275,56 @@ const filterRows = () => {
  * @param {string} pathname /hoge
  * @param {Object} payload request-body object
  * @returns レスポンス
+ * @throws {Error} サーバーがエラーを返した場合
  */
-const fetchServer = (method, pathname, payload) => {
-  return fetch(pathname, {
+const fetchServer = async (method, pathname, payload) => {
+  const response = await fetch(pathname, {
     method: method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response));
+  }
+
+  return response;
+};
+
+/**
+ * エラーレスポンスからメッセージを取り出す
+ * @param {Response} response エラーレスポンス
+ * @returns メッセージ
+ */
+const extractErrorMessage = async (response) => {
+  const body = await response.text();
+
+  try {
+    const { error } = JSON.parse(body);
+    if (error) {
+      return error;
+    }
+  } catch {
+    // JSONでない場合は本文をそのまま使う
+  }
+
+  return body.length > 0 ? body : `${response.status} ${response.statusText}`;
+};
+
+/**
+ * 画面上部にエラーを表示
+ * @param {string} message 表示するメッセージ
+ */
+const showError = (message) => {
+  $("#error-message").text(message);
+  $("#error-banner").show();
+};
+
+/**
+ * エラー表示を消す
+ */
+const hideError = () => {
+  $("#error-banner").hide();
 };
 
 /**

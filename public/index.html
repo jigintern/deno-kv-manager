@@ -12,6 +12,12 @@
 </head>
 
 <body>
+  <div id="error-banner" class="notification is-danger"
+    style="display: none; position: fixed; top: 4rem; left: 1rem; right: 1rem; z-index: 40;">
+    <button class="delete" onclick="hideError()"></button>
+    <span id="error-message" style="white-space: pre-wrap; word-break: break-all;"></span>
+  </div>
+
   <div class="container">
     <section class="section">
       <div class="container">
