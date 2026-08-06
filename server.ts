@@ -37,25 +37,45 @@ const deleteRouter = async (
   return undefined;
 };
 
+// Deno KVへの接続失敗などをフロントに伝える
+// 例: URLの形式違いや無効なアクセストークン
+const errorResponse = (error: unknown): Response => {
+  console.error(error);
+
+  const message = error instanceof Error ? error.message : String(error);
+
+  return new Response(
+    JSON.stringify({ error: message }),
+    {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    },
+  );
+};
+
 Deno.serve({ port: 8080 }, async (request) => {
   const method = request.method;
   const pathname = new URL(request.url).pathname;
 
-  switch (method) {
-    case "PUT": {
-      const res = await putRouter(pathname, request);
-      if (res !== undefined) {
-        return res;
+  try {
+    switch (method) {
+      case "PUT": {
+        const res = await putRouter(pathname, request);
+        if (res !== undefined) {
+          return res;
+        }
+        break;
       }
-      break;
-    }
-    case "DELETE": {
-      const res = await deleteRouter(pathname, request);
-      if (res !== undefined) {
-        return res;
+      case "DELETE": {
+        const res = await deleteRouter(pathname, request);
+        if (res !== undefined) {
+          return res;
+        }
+        break;
       }
-      break;
     }
+  } catch (error) {
+    return errorResponse(error);
   }
 
   return serveDir(
